@@ -100,7 +100,7 @@ REST_FRAMEWORK = {
 }
 
 
-WSGI_APPLICATION = 'backend.wsgi.application'
+WSGI_APPLICATION = 'backend.backend.wsgi.application'
 CART_SESSION_COOKIE = 'cart_session_id'
 CART_COOKIE_AGE = 60 * 60 * 24 * 7  # 7 days
 
