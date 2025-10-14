@@ -1,0 +1,22 @@
+Hi {{ order.get_recipient_email }},
+
+Thank you for your order!
+
+Your order reference is: {{ order.order_reference }}
+We are currently processing your order and will notify you once it's shipped.
+
+Order Summary:
+{% for item in order.items.all %}
+- {{ item.quantity }} x {{ item.product_variant }} 
+{% endfor %}
+
+Shipping to:
+{{ order.address }}
+{{ order.city }}, {{ order.postal_code }}
+
+Total: ${{ order.total_price }}
+
+If you have any questions, feel free to reply to this email.
+
+Thanks again for shopping with us!
+- The {{ settings.DEFAULT_FROM_EMAIL }} Team
