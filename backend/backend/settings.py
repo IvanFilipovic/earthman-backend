@@ -29,11 +29,13 @@ ALLOWED_HOSTS = []
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
+    'https://earthman-web-ivanfilipovics-projects.vercel.app'
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'https://earthman-web-ivanfilipovics-projects.vercel.app'
 ]
 
 # Application definition
@@ -100,7 +102,7 @@ REST_FRAMEWORK = {
 }
 
 
-WSGI_APPLICATION = 'backend.backend.wsgi.application'
+WSGI_APPLICATION = 'backend.wsgi.application'
 CART_SESSION_COOKIE = 'cart_session_id'
 CART_COOKIE_AGE = 60 * 60 * 24 * 7  # 7 days
 
