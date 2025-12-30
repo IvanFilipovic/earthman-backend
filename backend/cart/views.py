@@ -9,40 +9,13 @@ from .serializers import CartSerializer
 
 class CartView(APIView):
     def get(self, request):
-        # Step 1: Check for existing cart_session_id in cookies
         session_id = request.COOKIES.get(settings.CART_SESSION_COOKIE)
-
-        # Step 2: If session_id doesn't exist, create a new cart and set the cookie
         if not session_id:
-            # Generate a new session ID
-            session_id = str(uuid.uuid4())
+            return Response({"detail": "Missing cart session cookie."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Create a new Cart with the session ID
-            cart = Cart.objects.create(session_id=session_id)
-            
-            # Step 3: Set the cookie for future requests
-            response = Response({"detail": "New cart created."}, status=status.HTTP_201_CREATED)
+        cart, _ = Cart.objects.get_or_create(session_id=session_id)
+        return Response(CartSerializer(cart).data, status=status.HTTP_200_OK)
 
-            # Set the cookie in the response (this is the important part)
-            response.set_cookie(
-                key=settings.CART_SESSION_COOKIE,
-                value=session_id,
-                max_age=settings.CART_COOKIE_AGE,  # 7 days
-                httponly=False,  # Set to True to make it inaccessible from JavaScript
-                samesite='None',  # 'Strict' or 'Lax' for security, 'None' for cross-site requests
-                secure=True,  # Set to True in production (HTTPS)
-                path='/',  # Ensure the cookie is available on all paths
-            )
-            return response
-        else:
-            # Step 4: Try to find an existing cart if session_id exists
-            try:
-                cart = Cart.objects.get(session_id=session_id)
-                serializer = CartSerializer(cart)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except Cart.DoesNotExist:
-                # If cart doesn't exist with that session ID
-                return Response({"detail": "Cart not found."}, status=status.HTTP_404_NOT_FOUND)
 
 class UpdateCartItemView(APIView):
     def put(self, request):

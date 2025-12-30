@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
+import os
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,17 +28,37 @@ SECRET_KEY = 'django-insecure-6+6v7wj$n$a=hu6hj(2a9&y2mj5fdust2ptxzokq(^kv07ap17
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '127.0.0.1', 'localhost'
+]
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
-    'https://earthman-web-ivanfilipovics-projects.vercel.app'
+    "http://127.0.0.1:8000",
+    'https://earthman-web-ivanfilipovics-projects.vercel.app',
+    'https://earthman-nh9afgzf2-ivanfilipovics-projects.vercel.app',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'https://earthman-web-ivanfilipovics-projects.vercel.app'
+    "http://localhost:3000",
+    "http://127.0.0.1:8000",
+    "https://earthman-web-ivanfilipovics-projects.vercel.app",
+    "https://earthman-nh9afgzf2-ivanfilipovics-projects.vercel.app",
+    "https://2a1c9c13ff6a.ngrok-free.app",
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
 ]
 
 # Application definition
@@ -62,9 +85,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -165,7 +188,7 @@ EMAIL_HOST = "smtp.hostinger.com"
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
 EMAIL_HOST_USER = "ivan.filipovic@exit-three.icu"
-EMAIL_HOST_PASSWORD = "exit34food@ME"
+EMAIL_HOST_PASSWORD = ""
 EMAIL_TIMEOUT = 10
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
@@ -175,3 +198,33 @@ CELERY_BROKER_URL = 'redis://localhost:6379/0'
 # Optional — recommended:
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+
+
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY')
+STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET')
+
+# PayPal Configuration
+PAYPAL_MODE = config('PAYPAL_MODE', default='sandbox')
+PAYPAL_CLIENT_ID = config('PAYPAL_CLIENT_ID')
+PAYPAL_CLIENT_SECRET = config('PAYPAL_CLIENT_SECRET')
+
+# Frontend URL for PayPal return
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+
+# Outlook/Office 365 Email Configuration
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.office365.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'earthman@earth-man.eu')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'EARTHMAN <noreply@earth-man.eu>')
+
+# Staff notification email
+STAFF_ORDER_EMAIL = os.getenv('STAFF_ORDER_EMAIL', 'orders@earth-man.eu')
+
+
+
+# Email timeout
+EMAIL_TIMEOUT = 10

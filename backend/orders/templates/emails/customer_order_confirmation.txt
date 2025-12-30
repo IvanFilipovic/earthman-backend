@@ -1,0 +1,45 @@
+<!-- orders/templates/emails/customer_order_confirmation.txt -->
+EARTHMAN - Order Confirmation
+
+✓ ORDER CONFIRMED
+
+Hello {{ order.first_name }},
+
+Thank you for your order! We're excited to get your items to you. You'll receive a shipping confirmation email with tracking information once your order ships.
+
+ORDER INFORMATION
+================
+Order Number: {{ order.order_reference }}
+Order Date: {{ order.created_at|date:"F d, Y" }} at {{ order.created_at|time:"H:i" }}
+Payment Method: {{ order.payment_method|upper }}
+Payment Status: PAID
+
+ORDER ITEMS
+===========
+{% for item in order.items.all %}
+{{ item.product_variant.product.name }}
+Size: {{ item.product_variant.size.name }} | Color: {{ item.product_variant.color.name }}
+Quantity: {{ item.quantity }} × €{{ item.unit_price }} = €{{ item.total_price }}
+{% endfor %}
+
+ORDER SUMMARY
+=============
+Subtotal: €{{ order.subtotal }}
+Shipping: {% if order.shipping_cost == 0 %}FREE{% else %}€{{ order.shipping_cost }}{% endif %}
+Total: €{{ order.total_price }}
+
+DELIVERY ADDRESS
+================
+{{ order.first_name }} {{ order.last_name }}
+{{ order.delivery_address }}
+{{ order.delivery_postal_code }} {{ order.delivery_city }}
+{{ order.country }}
+Phone: {{ order.phone_number }}
+
+Track your order: {{ frontend_url }}/orders
+
+Questions about your order?
+Contact us at orders@earth-man.eu
+
+© {{ current_year }} EARTHMAN. All rights reserved.
+{{ frontend_url }}

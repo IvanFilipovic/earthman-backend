@@ -1,0 +1,429 @@
+<!-- orders/templates/emails/customer_order_confirmation.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation - EARTHMAN</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #e2e2e2;
+            color: #252525;
+            line-height: 1.6;
+        }
+        .email-wrapper {
+            width: 100%;
+            background-color: #e2e2e2;
+            padding: 20px 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 2px 8px rgba(37, 37, 37, 0.1);
+        }
+        .header {
+            background-color: #252525;
+            color: #e2e2e2;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        .success-banner {
+            background-color: #00c90d;
+            color: #ffffff;
+            padding: 20px 30px;
+            text-align: center;
+        }
+        .success-banner h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 16px;
+            color: #252525;
+            margin-bottom: 20px;
+        }
+        .message {
+            font-size: 14px;
+            color: #252525;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+        .order-box {
+            background-color: #e2e2e2;
+            border-left: 4px solid #0040ff;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .order-box h3 {
+            margin: 0 0 15px 0;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #252525;
+        }
+        .order-info {
+            display: table;
+            width: 100%;
+        }
+        .info-row {
+            display: table-row;
+        }
+        .info-label {
+            display: table-cell;
+            padding: 8px 0;
+            font-weight: 600;
+            color: #252525;
+            font-size: 14px;
+            width: 40%;
+        }
+        .info-value {
+            display: table-cell;
+            padding: 8px 0;
+            color: #252525;
+            font-size: 14px;
+        }
+        .items-section {
+            margin: 30px 0;
+        }
+        .items-section h3 {
+            margin: 0 0 20px 0;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #252525;
+            border-bottom: 2px solid #e2e2e2;
+            padding-bottom: 10px;
+        }
+        .item {
+            display: table;
+            width: 100%;
+            border-bottom: 1px solid #e2e2e2;
+            padding: 15px 0;
+        }
+        .item:last-child {
+            border-bottom: none;
+        }
+        .item-details {
+            display: table-cell;
+            vertical-align: top;
+            width: 70%;
+        }
+        .item-name {
+            font-weight: 600;
+            color: #252525;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .item-meta {
+            font-size: 12px;
+            color: #B4B4B4;
+        }
+        .item-quantity {
+            display: table-cell;
+            vertical-align: top;
+            text-align: center;
+            width: 15%;
+            font-size: 14px;
+            color: #252525;
+        }
+        .item-price {
+            display: table-cell;
+            vertical-align: top;
+            text-align: right;
+            width: 15%;
+            font-weight: 600;
+            font-size: 14px;
+            color: #252525;
+        }
+        .totals {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e2e2;
+        }
+        .total-row {
+            display: table;
+            width: 100%;
+            margin: 8px 0;
+        }
+        .total-label {
+            display: table-cell;
+            text-align: left;
+            font-size: 14px;
+            color: #252525;
+        }
+        .total-value {
+            display: table-cell;
+            text-align: right;
+            font-size: 14px;
+            color: #252525;
+        }
+        .total-row.grand-total {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e2e2;
+        }
+        .total-row.grand-total .total-label,
+        .total-row.grand-total .total-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #252525;
+        }
+        .shipping-box {
+            background-color: #e2e2e2;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .shipping-box h3 {
+            margin: 0 0 15px 0;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #252525;
+        }
+        .shipping-box p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #252525;
+        }
+        .cta-button {
+            text-align: center;
+            margin: 40px 0;
+        }
+        .cta-button a {
+            display: inline-block;
+            background-color: #0040ff;
+            color: #ffffff;
+            padding: 16px 40px;
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 14px;
+            border-radius: 2px;
+            transition: background-color 0.3s ease;
+        }
+        .help-text {
+            font-size: 13px;
+            color: #B4B4B4;
+            text-align: center;
+            margin-top: 30px;
+            line-height: 1.8;
+        }
+        .help-text a {
+            color: #0040ff;
+            text-decoration: none;
+        }
+        .footer {
+            background-color: #252525;
+            color: #e2e2e2;
+            padding: 30px;
+            text-align: center;
+        }
+        .footer-brand {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+        .footer-links {
+            margin: 15px 0;
+        }
+        .footer-links a {
+            color: #e2e2e2;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 12px;
+        }
+        .footer-links a:hover {
+            color: #0040ff;
+        }
+        .footer-copyright {
+            font-size: 11px;
+            color: #B4B4B4;
+            margin-top: 15px;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #00c90d;
+            color: #ffffff;
+            padding: 5px 12px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+            }
+            .content {
+                padding: 30px 20px !important;
+            }
+            .header {
+                padding: 30px 20px !important;
+            }
+            .header h1 {
+                font-size: 24px !important;
+            }
+            .item-details {
+                width: 60% !important;
+            }
+            .item-quantity {
+                width: 20% !important;
+            }
+            .item-price {
+                width: 20% !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="email-container">
+            <!-- Header -->
+            <div class="header">
+                <h1>EARTHMAN</h1>
+            </div>
+
+            <!-- Success Banner -->
+            <div class="success-banner">
+                <h2>✓ ORDER CONFIRMED</h2>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <div class="greeting">
+                    Hello {{ order.first_name }},
+                </div>
+
+                <div class="message">
+                    Thank you for your order! We're excited to get your items to you. You'll receive a shipping confirmation email with tracking information once your order ships.
+                </div>
+
+                <!-- Order Details Box -->
+                <div class="order-box">
+                    <h3>Order Information</h3>
+                    <div class="order-info">
+                        <div class="info-row">
+                            <div class="info-label">Order Number</div>
+                            <div class="info-value"><strong>{{ order.order_reference }}</strong></div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Order Date</div>
+                            <div class="info-value">{{ order.created_at|date:"F d, Y" }} at {{ order.created_at|time:"H:i" }}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Payment Method</div>
+                            <div class="info-value">{{ order.payment_method|upper }}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Payment Status</div>
+                            <div class="info-value"><span class="badge">PAID</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="items-section">
+                    <h3>Order Items</h3>
+                    {% for item in order.items.all %}
+                    <div class="item">
+                        <div class="item-details">
+                            <div class="item-name">{{ item.product_variant.product.name }}</div>
+                            <div class="item-meta">
+                                Size: {{ item.product_variant.size.name }} | 
+                                Color: {{ item.product_variant.color.name }}
+                            </div>
+                        </div>
+                        <div class="item-quantity">{{ item.quantity }}×</div>
+                        <div class="item-price">€{{ item.total_price }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Totals -->
+                <div class="totals">
+                    <div class="total-row">
+                        <div class="total-label">Subtotal</div>
+                        <div class="total-value">€{{ order.subtotal }}</div>
+                    </div>
+                    <div class="total-row">
+                        <div class="total-label">Shipping</div>
+                        <div class="total-value">
+                            {% if order.shipping_cost == 0 %}
+                                FREE
+                            {% else %}
+                                €{{ order.shipping_cost }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="total-row grand-total">
+                        <div class="total-label">Total</div>
+                        <div class="total-value">€{{ order.total_price }}</div>
+                    </div>
+                </div>
+
+                <!-- Shipping Address -->
+                <div class="shipping-box">
+                    <h3>Delivery Address</h3>
+                    <p><strong>{{ order.first_name }} {{ order.last_name }}</strong></p>
+                    <p>{{ order.delivery_address }}</p>
+                    <p>{{ order.delivery_postal_code }} {{ order.delivery_city }}</p>
+                    <p>{{ order.country }}</p>
+                    <p style="margin-top: 10px;">Phone: {{ order.phone_number }}</p>
+                </div>
+
+                <!-- CTA Button -->
+                <div class="cta-button">
+                    <a href="{{ frontend_url }}/orders">Track Your Order</a>
+                </div>
+
+                <!-- Help Text -->
+                <div class="help-text">
+                    Questions about your order?<br>
+                    Contact us at <a href="mailto:orders@earth-man.eu">orders@earth-man.eu</a><br>
+                    We're here to help!
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <div class="footer-brand">EARTHMAN</div>
+                <div class="footer-links">
+                    <a href="{{ frontend_url }}">Visit Store</a> | 
+                    <a href="{{ frontend_url }}/contact">Contact</a> | 
+                    <a href="{{ frontend_url }}/returns">Returns</a>
+                </div>
+                <div class="footer-copyright">
+                    © {{ current_year }} EARTHMAN. All rights reserved.
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

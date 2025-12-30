@@ -1,3 +1,5 @@
+# orders/models.py
+
 from django.conf import settings
 from django.db import models
 from common.models import ProductVariant
@@ -8,13 +10,11 @@ from decimal import Decimal
 def generate_order_reference():
     return f"ORD-{uuid.uuid4().hex[:10].upper()}"
 
-# ------------------
-# 🧾 Updated Order Models (for IPG)
-# ------------------
 
 class Order(models.Model):
     PAYMENT_STATUS_CHOICES = [
         ('pending', 'Pending'),
+        ('processing', 'Processing'),
         ('paid', 'Paid'),
         ('failed', 'Failed'),
         ('refunded', 'Refunded'),
@@ -30,7 +30,9 @@ class Order(models.Model):
         ('cashOnDelivery', 'Cash on delivery'),
         ('card', 'Card'),
         ('bankTransfer', 'Bank transfer'),
+        ('paypal', 'PayPal'),
     ]
+    
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -46,13 +48,13 @@ class Order(models.Model):
         related_name='orders'
     )
     email = models.EmailField(blank=True, null=True)
-    country = models.CharField(max_length=72,blank=True)
+    country = models.CharField(max_length=72, blank=True)
     address = models.CharField(max_length=72)
     city = models.CharField(max_length=48)
     postal_code = models.CharField(max_length=10)
-    delivery_address = models.CharField(max_length=72,blank=True)
-    delivery_city = models.CharField(max_length=48,blank=True)
-    delivery_postal_code = models.CharField(max_length=10,blank=True)
+    delivery_address = models.CharField(max_length=72, blank=True)
+    delivery_city = models.CharField(max_length=48, blank=True)
+    delivery_postal_code = models.CharField(max_length=10, blank=True)
     phone_number = models.CharField(max_length=15)
     
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, blank=True, null=True)
@@ -65,20 +67,51 @@ class Order(models.Model):
         default=generate_order_reference
     )
     total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=10.00)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    stripe_payment_intent_id = models.CharField(max_length=255, blank=True, null=True)
+    stripe_client_secret = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=20, choices=ORDER_STATUS, default="processing")
-
+    paypal_order_id = models.CharField(max_length=255, blank=True, null=True)
+    paypal_payer_id = models.CharField(max_length=255, blank=True, null=True)
+    tracking_number = models.CharField(max_length=255, blank=True, null=True)
+    email_sent = models.BooleanField(default=False)
+    email_sent_at = models.DateTimeField(null=True, blank=True)
+    
+    # ✅ New field to track if shipping email was sent
+    shipping_email_sent = models.BooleanField(default=False)
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._previous_status = self.status  # Store current value
+        self._previous_status = self.status  # Store current status
 
     def save(self, *args, **kwargs):
-        if self.pk:  # instance already exists
+        # Check if this is an existing order (has pk)
+        if self.pk:
             old = Order.objects.get(pk=self.pk)
             self._previous_status = old.status
-        super().save(*args, **kwargs)
+            
+            # ✅ Check if status changed to 'shipped'
+            status_changed_to_shipped = (
+                self._previous_status != 'shipped' and 
+                self.status == 'shipped'
+            )
+            
+            # Save the order first
+            super().save(*args, **kwargs)
+            
+            # Send shipping email if status changed to shipped
+            if status_changed_to_shipped and not self.shipping_email_sent:
+                # Import here to avoid circular imports
+                from .emails import send_shipping_confirmation
+                
+                if send_shipping_confirmation(self):
+                    self.shipping_email_sent = True
+                    # Use update to avoid recursion
+                    Order.objects.filter(pk=self.pk).update(shipping_email_sent=True)
+        else:
+            # New order, just save
+            super().save(*args, **kwargs)
 
     def get_recipient_email(self):
         if self.user:
@@ -87,21 +120,36 @@ class Order(models.Model):
             return self.guest.email
         return self.email
 
+    @property
+    def subtotal(self):
+        """Calculate subtotal (total - shipping)"""
+        if self.total_price and self.shipping_cost:
+            return self.total_price - self.shipping_cost
+        return self.total_price or Decimal('0.00')
+    
+    def get_item_price(self, item):
+        """Get unit price for an order item"""
+        product = item.product_variant.product
+        if product.discount and product.discount_price:
+            return Decimal(str(product.discount_price))
+        return Decimal(str(product.price))
+    
+    def get_item_total(self, item):
+        """Get total price for an order item"""
+        return self.get_item_price(item) * item.quantity
 
     def calculate_total(self):
-        total = Decimal('0.00')  # Ensure we start with a Decimal value.
+        total = Decimal('0.00')
         for item in self.items.select_related('product_variant__product'):
             product = item.product_variant.product
-            # Ensure both product price and discount price are Decimals
             unit_price = Decimal(str(product.discount_price if product.discount and product.discount_price else product.price))
             total += unit_price * item.quantity
-
-        # Ensure shipping cost is a Decimal as well
-        total += Decimal(str(self.shipping_cost))  # Convert shipping cost to Decimal
+        total += Decimal(str(self.shipping_cost))
         return total
     
     def __str__(self):
         return f"Order {self.order_reference} by {self.email}"
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")

@@ -1,5 +1,5 @@
 from django_filters import rest_framework as filters
-from .models import Product, Collection
+from .models import Product, Collection,Size, Color
 import django_filters
 
 class CharInFilter(filters.BaseInFilter, filters.CharFilter):
@@ -21,54 +21,76 @@ class CollectionFilter(filters.FilterSet):
         model = Collection
         fields = ['name', 'slug']
 
-class CharInFilter(filters.BaseInFilter, filters.CharFilter):
-    """Accepts comma-separated values or repeated ?param=...&param=..."""
-    pass
 
-class ProductFlatFilter(filters.FilterSet):
-    # Basic fields
-    collection = filters.CharFilter(field_name='collection__slug')
-    gender = filters.CharFilter(field_name='gender', lookup_expr='iexact')
-
-    available  = filters.BooleanFilter(field_name='available')
-    min_price  = filters.NumberFilter(field_name='price', lookup_expr='gte')
-    max_price  = filters.NumberFilter(field_name='price', lookup_expr='lte')
-
-    # Multi-category OR (any)
-    category   = CharInFilter(field_name='category', lookup_expr='in')
-
-    # Colors (via ProductColorImage -> Color.name)
-    # OR (any): ?color=Blue,White or ?color=Blue&color=White
-    color      = CharInFilter(field_name='color_images__color__name', lookup_expr='in')
-
-    # Sizes (via Variant.size.name)
-    # OR (any): ?size=S,M,XL
-    size       = CharInFilter(field_name='variants__size__name', lookup_expr='in')
-
-    # AND (all) semantics for sizes: ?size_all=S,XXL
-    size_all   = filters.CharFilter(method='filter_sizes_all')
-
-    # Product-level flags (not on variants)
-    hot        = filters.BooleanFilter(field_name='hot')
-    new        = filters.BooleanFilter(field_name='new')
+class ProductFlatFilter(django_filters.FilterSet):
+    collection = django_filters.CharFilter(
+        field_name='collection__slug',
+        lookup_expr='exact'
+    )
+    
+    # Changed to filter by category name instead of ID
+    category = django_filters.CharFilter(
+        method='filter_categories',
+        label='Category'
+    )
+    
+    gender = django_filters.CharFilter(
+        field_name='gender',
+        lookup_expr='exact'
+    )
+    
+    size = django_filters.CharFilter(
+        method='filter_sizes',
+        label='Size'
+    )
+    
+    color = django_filters.CharFilter(
+        method='filter_colors',
+        label='Color'
+    )
 
     class Meta:
-        model  = Product
-        fields = [
-            'collection', 'available',
-            'min_price', 'max_price',
-            'category', 'color', 'size', 'size_all', 'gender',
-            'hot', 'new',
-        ]
+        model = Product
+        fields = ['collection', 'category', 'gender', 'size', 'color']
 
-    def filter_sizes_all(self, qs, name, value):
+    def filter_categories(self, queryset, name, value):
         """
-        AND semantics for comma-separated sizes.
-        Requires product to have variants in *all* requested sizes (any color).
+        Filter products that belong to ANY of the specified category names
         """
         if not value:
-            return qs
-        sizes = [s.strip() for s in value.split(',') if s.strip()]
-        for s in sizes:
-            qs = qs.filter(variants__size__name__iexact=s)
-        return qs.distinct()
+            return queryset
+        
+        # Get all category names from query params
+        category_names = self.request.GET.getlist('category')
+        if not category_names:
+            return queryset
+        
+        # Filter by category name instead of ID
+        return queryset.filter(
+            category__name__in=category_names
+        ).distinct()
+
+    def filter_sizes(self, queryset, name, value):
+        if not value:
+            return queryset
+        
+        sizes = self.request.GET.getlist('size')
+        if not sizes:
+            return queryset
+        
+        return queryset.filter(
+            variants__size__name__in=sizes
+        ).distinct()
+
+    def filter_colors(self, queryset, name, value):
+        if not value:
+            return queryset
+        
+        colors = self.request.GET.getlist('color')
+        if not colors:
+            return queryset
+        
+        return queryset.filter(
+            color_images__color__name__in=colors
+        ).distinct()
+    

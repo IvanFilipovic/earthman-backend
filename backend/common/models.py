@@ -111,7 +111,7 @@ class ProductVariant(models.Model):
 
 # -- Product Variant Images --
 class ProductVariantImage(models.Model):
-    variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name='images')
+    variant = models.ForeignKey(ProductColorImage, on_delete=models.CASCADE, related_name='images')
     image = models.URLField(max_length=200, blank=True, null=True)
     alt_text = models.CharField(max_length=128, blank=True)
 

@@ -1,0 +1,353 @@
+<!-- orders/templates/emails/staff_order_notification.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Order - {{ order.order_reference }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #e2e2e2;
+            color: #252525;
+            line-height: 1.6;
+        }
+        .email-wrapper {
+            width: 100%;
+            background-color: #e2e2e2;
+            padding: 20px 0;
+        }
+        .email-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 2px 8px rgba(37, 37, 37, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #0040ff 0%, #252525 100%);
+            color: #ffffff;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .header .subtitle {
+            font-size: 14px;
+            color: #e2e2e2;
+        }
+        .alert-banner {
+            background-color: #0040ff;
+            color: #ffffff;
+            padding: 15px 30px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .info-card {
+            background-color: #e2e2e2;
+            padding: 20px;
+            border-left: 3px solid #0040ff;
+        }
+        .info-card h3 {
+            margin: 0 0 15px 0;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #252525;
+        }
+        .info-card p {
+            margin: 5px 0;
+            font-size: 13px;
+            color: #252525;
+        }
+        .info-card .highlight {
+            font-weight: 700;
+            font-size: 16px;
+            color: #0040ff;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #ffffff;
+        }
+        .items-table thead {
+            background-color: #252525;
+            color: #e2e2e2;
+        }
+        .items-table th {
+            padding: 12px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .items-table td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #e2e2e2;
+            font-size: 13px;
+            color: #252525;
+        }
+        .items-table tr:last-child td {
+            border-bottom: none;
+        }
+        .product-name {
+            font-weight: 600;
+            color: #252525;
+        }
+        .product-meta {
+            font-size: 11px;
+            color: #B4B4B4;
+            margin-top: 3px;
+        }
+        .totals-section {
+            background-color: #e2e2e2;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        .total-row.grand {
+            border-top: 2px solid #252525;
+            margin-top: 10px;
+            padding-top: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #0040ff;
+        }
+        .customer-section {
+            margin: 30px 0;
+        }
+        .customer-section h3 {
+            margin: 0 0 15px 0;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #252525;
+            border-bottom: 2px solid #0040ff;
+            padding-bottom: 8px;
+        }
+        .customer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .customer-box {
+            background-color: #e2e2e2;
+            padding: 15px;
+        }
+        .customer-box h4 {
+            margin: 0 0 10px 0;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #252525;
+        }
+        .customer-box p {
+            margin: 3px 0;
+            font-size: 13px;
+            color: #252525;
+        }
+        .status-badges {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .badge-success {
+            background-color: #00c90d;
+            color: #ffffff;
+        }
+        .badge-info {
+            background-color: #0040ff;
+            color: #ffffff;
+        }
+        .action-note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 13px;
+            color: #856404;
+        }
+        .footer {
+            background-color: #252525;
+            color: #e2e2e2;
+            padding: 20px 30px;
+            text-align: center;
+            font-size: 12px;
+        }
+        @media only screen and (max-width: 700px) {
+            .info-grid,
+            .customer-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .content {
+                padding: 20px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="email-container">
+            <!-- Header -->
+            <div class="header">
+                <h1>🔔 NEW ORDER RECEIVED</h1>
+                <div class="subtitle">Backoffice Notification</div>
+            </div>
+
+            <!-- Alert Banner -->
+            <div class="alert-banner">
+                Order {{ order.order_reference }} - €{{ order.total_price }}
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Status Badges -->
+                <div class="status-badges">
+                    <span class="badge badge-success">PAID</span>
+                    <span class="badge badge-info">{{ order.payment_method|upper }}</span>
+                </div>
+
+                <!-- Quick Info Grid -->
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>Order Details</h3>
+                        <p><strong>Order #:</strong> {{ order.order_reference }}</p>
+                        <p><strong>Date:</strong> {{ order.created_at|date:"F d, Y H:i" }}</p>
+                        <p><strong>Transaction ID:</strong> {{ order.transaction_id|default:"N/A" }}</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Order Value</h3>
+                        <p class="highlight">€{{ order.total_price }}</p>
+                        <p><strong>Items:</strong> {{ order.items.count }}</p>
+                        <p><strong>Shipping:</strong> €{{ order.shipping_cost }}</p>
+                    </div>
+                </div>
+
+                <!-- Action Note -->
+                <div class="action-note">
+                    <strong>⚡ Action Required:</strong> Process this order and prepare for shipment.
+                </div>
+
+                <!-- Order Items Table -->
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th style="text-align: center;">Qty</th>
+                            <th style="text-align: right;">Unit Price</th>
+                            <th style="text-align: right;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items.all %}
+                        <tr>
+                            <td>
+                                <div class="product-name">{{ item.product_variant.product.name }}</div>
+                                <div class="product-meta">
+                                    Size: {{ item.product_variant.size.name }} | 
+                                    Color: {{ item.product_variant.color.name }} |
+                                    SKU: {{ item.product_variant.slug }}
+                                </div>
+                            </td>
+                            <td style="text-align: center; font-weight: 600;">{{ item.quantity }}</td>
+                            <td style="text-align: right;">€{{ item.unit_price }}</td>
+                            <td style="text-align: right; font-weight: 700;">€{{ item.total_price }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- Totals Section -->
+                <div class="totals-section">
+                    <div class="total-row">
+                        <span>Subtotal:</span>
+                        <span>€{{ order.subtotal }}</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Shipping:</span>
+                        <span>€{{ order.shipping_cost }}</span>
+                    </div>
+                    <div class="total-row grand">
+                        <span>TOTAL PAID:</span>
+                        <span>€{{ order.total_price }}</span>
+                    </div>
+                </div>
+
+                <!-- Customer Information -->
+                <div class="customer-section">
+                    <h3>Customer Information</h3>
+                    <div class="customer-grid">
+                        <div class="customer-box">
+                            <h4>Contact Details</h4>
+                            <p><strong>{{ order.first_name }} {{ order.last_name }}</strong></p>
+                            <p>{{ order.email }}</p>
+                            <p>{{ order.phone_number }}</p>
+                        </div>
+                        <div class="customer-box">
+                            <h4>Billing Address</h4>
+                            <p>{{ order.address }}</p>
+                            <p>{{ order.postal_code }} {{ order.city }}</p>
+                            <p>{{ order.country }}</p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <div class="customer-box">
+                            <h4>Delivery Address</h4>
+                            <p><strong>{{ order.first_name }} {{ order.last_name }}</strong></p>
+                            <p>{{ order.delivery_address }}</p>
+                            <p>{{ order.delivery_postal_code }} {{ order.delivery_city }}</p>
+                            <p>{{ order.country }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                EARTHMAN Backoffice System<br>
+                © {{ current_year }} EARTHMAN. Internal Use Only.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

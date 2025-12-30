@@ -1,0 +1,53 @@
+<!-- orders/templates/emails/staff_order_notification.txt -->
+🔔 NEW ORDER RECEIVED - EARTHMAN Backoffice
+
+Order {{ order.order_reference }} - €{{ order.total_price }}
+
+STATUS: PAID | {{ order.payment_method|upper }}
+
+ORDER DETAILS
+=============
+Order #: {{ order.order_reference }}
+Date: {{ order.created_at|date:"F d, Y H:i" }}
+Transaction ID: {{ order.transaction_id|default:"N/A" }}
+Order Value: €{{ order.total_price }}
+Items Count: {{ order.items.count }}
+Shipping Cost: €{{ order.shipping_cost }}
+
+⚡ ACTION REQUIRED: Process this order and prepare for shipment.
+
+ORDER ITEMS
+===========
+{% for item in order.items.all %}
+{{ item.product_variant.product.name }}
+Size: {{ item.product_variant.size.name }} | Color: {{ item.product_variant.color.name }} | SKU: {{ item.product_variant.slug }}
+Quantity: {{ item.quantity }} × €{{ item.unit_price }} = €{{ item.total_price }}
+{% endfor %}
+
+ORDER SUMMARY
+=============
+Subtotal: €{{ order.subtotal }}
+Shipping: €{{ order.shipping_cost }}
+TOTAL PAID: €{{ order.total_price }}
+
+CUSTOMER INFORMATION
+====================
+Contact Details:
+{{ order.first_name }} {{ order.last_name }}
+{{ order.email }}
+{{ order.phone_number }}
+
+Billing Address:
+{{ order.address }}
+{{ order.postal_code }} {{ order.city }}
+{{ order.country }}
+
+Delivery Address:
+{{ order.first_name }} {{ order.last_name }}
+{{ order.delivery_address }}
+{{ order.delivery_postal_code }} {{ order.delivery_city }}
+{{ order.country }}
+
+---
+EARTHMAN Backoffice System
+© {{ current_year }} EARTHMAN. Internal Use Only.

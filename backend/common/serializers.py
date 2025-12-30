@@ -48,11 +48,10 @@ class ProductVariantShortSerializer(serializers.ModelSerializer):
 class ProductVariantDetailSerializer(serializers.ModelSerializer):
     color = ColorSerializer()
     size = SizeSerializer()
-    images = ProductVariantImageSerializer(many=True)
 
     class Meta:
         model = ProductVariant
-        fields = ['slug', 'color', 'size', 'available', 'images']
+        fields = ['slug', 'color', 'size', 'available']
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -72,23 +71,29 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_variant_groups(self, obj):
         from collections import defaultdict
-        grouped = defaultdict(list)
 
-        # IMPORTANT: variant.color is ProductColorImage; its Color is variant.color.color
-        # Preload color->color and size to avoid N+1
-        for variant in obj.variants.select_related('color__color', 'size'):
-            grouped[variant.color.color_id].append(variant)  # group by Color id
+        grouped = defaultdict(list)
+        qs = (
+            obj.variants
+              .select_related('color__color', 'size')
+              .prefetch_related('color__images')
+        )
+        for variant in qs:
+            grouped[variant.color.color_id].append(variant)
 
         result = []
         for variants in grouped.values():
-            pci = variants[0].color                  # ProductColorImage
-            color_obj = pci.color                    # Color
-            avatar_image = pci.avatar_image          # URL or None
+            pci = variants[0].color
+            color_obj = pci.color
+            avatar_image = pci.avatar_image
+            gallery_qs = pci.images.all().order_by('id')
 
             result.append({
                 'color': ColorSerializer(color_obj).data,
                 'avatar_image': avatar_image,
-                'sizes': ProductVariantShortSerializer(variants, many=True).data
+                'sizes': ProductVariantShortSerializer(variants, many=True).data,
+                # ✅ new: all images tied to this color
+                'gallery': ProductVariantImageSerializer(gallery_qs, many=True).data,
             })
 
         return result
@@ -102,7 +107,6 @@ class ProductSerializer(serializers.ModelSerializer):
             variant = (
                 obj.variants
                   .select_related('color__color', 'size')
-                  .prefetch_related('images')
                   .get(slug=variant_slug)
             )
             return ProductVariantDetailSerializer(variant).data
@@ -118,7 +122,7 @@ class ProductListSerializer(serializers.ModelSerializer):
 class CollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Collection
-        fields = ['id', 'name', 'slug', 'element_one', 'element_one_image',]
+        fields = ['id', 'name', 'slug', 'element_one', 'element_one_image', 'element_two_image']
 
 
 class ProductListFlatSerializer(serializers.Serializer):
@@ -159,12 +163,14 @@ class ProductListWithColorsSerializer(serializers.ModelSerializer):
     
 class ProductListFilteredSerializer(serializers.ModelSerializer):
     colors = serializers.SerializerMethodField()
+    category = serializers.StringRelatedField()
+    collection = serializers.StringRelatedField()
 
     class Meta:
         model = Product
         fields = [
-            "id", "name", "slug", "gender",
-            "price", "discount", "discount_price",
+            "id", "name", "slug", "gender", "collection",
+            "price", "discount", "discount_price", 'hot', 'new',
             "category", "available", "link_image", "alt_text",
             "colors",
         ]
@@ -175,7 +181,6 @@ class ProductListFilteredSerializer(serializers.ModelSerializer):
         Pick a representative variant slug per color (any size).
         Assumes variants/color_images are prefetched.
         """
-        # Build an index: PCI.id -> first variant slug we find
         rep_by_pci = {}
         for v in product.variants.all():
             pci_id = v.color_id

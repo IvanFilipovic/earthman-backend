@@ -1,9 +1,8 @@
 from django.contrib import admin
-from .models import Collection, Color, Size, Product, ProductVariant, ProductVariantImage, ProductColorImage
+from .models import Collection, Color, Size, Product, ProductVariant, ProductVariantImage, ProductColorImage, Categories
 from import_export import resources, fields
 from import_export.widgets import ForeignKeyWidget
 from import_export.admin import ImportExportModelAdmin
-from .models import Product, ProductVariant, Color, Size, Collection, ProductColorImage, Categories
 
 class ProductVariantResource(resources.ModelResource):
     product = fields.Field(
@@ -89,7 +88,7 @@ class ProductVariantInline(admin.TabularInline):
 @admin.register(Product)
 class ProductAdmin(ImportExportModelAdmin):
     resource_class = ProductResource
-    list_display = ('name', 'price', 'collection', 'available')
+    list_display = ('name', 'price', 'collection', 'available', 'slug')
     list_filter = ('collection',)
     search_fields = ('name', 'description')
     prepopulated_fields = {'slug': ('name',)}
@@ -100,10 +99,24 @@ class ProductAdmin(ImportExportModelAdmin):
 class ProductVariantAdmin(ImportExportModelAdmin):
     resource_class = ProductVariantResource
     list_display = ('product', 'color', 'size', 'available')
-    inlines = [ProductVariantImageInline]
 
 @admin.register(ProductColorImage)
 class ProductColorImageAdmin(ImportExportModelAdmin):
     resource_class = ProductColorResource
-    list_display = ('product', 'color')
+    list_display = ('product', 'color', 'name', 'avatar_image')
+    list_filter = ('product', 'color')
+    search_fields = (
+        'product__name',     # search by Product name
+        'color__name',       # search by Color name
+        'name',              # internal PCI name
+        'alt_text',          # alt text
+        'avatar_image',      # URL contains…
+    )
+    inlines = [ProductVariantImageInline]
 
+    # (optional – nice UX) quick jump to related objects
+    autocomplete_fields = ('product', 'color')
+
+@admin.register(ProductVariantImage)
+class ProductVariantImageAdmin(admin.ModelAdmin):
+    pass
