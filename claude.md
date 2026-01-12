@@ -1663,6 +1663,179 @@ schema_view = get_schema_view(
 
 ---
 
+## API Usage Examples
+
+### Customer Information with Orders
+
+**Endpoint:** `GET /api/customers/me/`
+
+**Description:** Retrieve authenticated customer's information including all their orders.
+
+**Authentication:** Required (Bearer Token)
+
+**Request Example:**
+```bash
+curl -X GET "http://localhost:8000/api/customers/me/" \
+  -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..." \
+  -H "Content-Type: application/json"
+```
+
+**Response Example:**
+```json
+{
+  "id": 1,
+  "email": "customer@example.com",
+  "first_name": "John",
+  "last_name": "Doe",
+  "newsletter": true,
+  "is_active": true,
+  "date_joined": "2026-01-10T10:30:00Z",
+  "orders": [
+    {
+      "id": 5,
+      "order_reference": "ORD-A1B2C3D4E5",
+      "email": "customer@example.com",
+      "country": "Croatia",
+      "address": "Main Street 123",
+      "city": "Zagreb",
+      "postal_code": "10000",
+      "delivery_address": "",
+      "delivery_city": "",
+      "delivery_postal_code": "",
+      "phone_number": "+385912345678",
+      "payment_method": "card",
+      "payment_status": "paid",
+      "transaction_id": "pi_3Ab12CdEfGhIjKlM",
+      "total_price": "125.00",
+      "shipping_cost": "10.00",
+      "status": "shipped",
+      "tracking_number": "TRK123456789",
+      "created_at": "2026-01-12T14:25:00Z",
+      "items": [
+        {
+          "id": 8,
+          "product_variant": {
+            "id": 15,
+            "product": {
+              "id": 3,
+              "name": "Cotton T-Shirt",
+              "price": "29.99",
+              "discount": true,
+              "discount_price": "24.99"
+            },
+            "color": {
+              "id": 2,
+              "color": {
+                "name": "Blue"
+              }
+            },
+            "size": {
+              "id": 3,
+              "name": "M"
+            },
+            "sku": "TSH-BLU-M",
+            "available": true
+          },
+          "quantity": 2
+        },
+        {
+          "id": 9,
+          "product_variant": {
+            "id": 22,
+            "product": {
+              "id": 7,
+              "name": "Denim Jeans",
+              "price": "79.99",
+              "discount": false,
+              "discount_price": null
+            },
+            "color": {
+              "id": 5,
+              "color": {
+                "name": "Dark Blue"
+              }
+            },
+            "size": {
+              "id": 4,
+              "name": "L"
+            },
+            "sku": "JNS-DBL-L",
+            "available": true
+          },
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "order_reference": "ORD-F6G7H8I9J0",
+      "email": "customer@example.com",
+      "country": "Croatia",
+      "address": "Main Street 123",
+      "city": "Zagreb",
+      "postal_code": "10000",
+      "phone_number": "+385912345678",
+      "payment_method": "paypal",
+      "payment_status": "paid",
+      "transaction_id": "PAYID-M1234567890",
+      "total_price": "55.98",
+      "shipping_cost": "10.00",
+      "status": "delivered",
+      "tracking_number": "TRK987654321",
+      "created_at": "2026-01-05T09:15:00Z",
+      "items": [
+        {
+          "id": 5,
+          "product_variant": {
+            "id": 8,
+            "product": {
+              "id": 2,
+              "name": "Summer Dress",
+              "price": "45.98",
+              "discount": false,
+              "discount_price": null
+            },
+            "color": {
+              "id": 1,
+              "color": {
+                "name": "Red"
+              }
+            },
+            "size": {
+              "id": 2,
+              "name": "S"
+            },
+            "sku": "DRS-RED-S",
+            "available": true
+          },
+          "quantity": 1
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Notes:**
+- Orders are returned in reverse chronological order (newest first)
+- All order items include complete product variant details
+- Response uses efficient database queries with `prefetch_related`
+- This endpoint replaces the deprecated `orders/my/` endpoint
+
+**Update Customer Information:**
+```bash
+curl -X PATCH "http://localhost:8000/api/customers/me/" \
+  -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "first_name": "John",
+    "last_name": "Smith",
+    "newsletter": false
+  }'
+```
+
+---
+
 ## Maintenance Tasks
 
 ### Daily
