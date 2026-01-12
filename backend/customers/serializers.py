@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from .models import Customer
+from orders.serializers import OrderSerializer
 
 
 class CustomerRegistrationSerializer(serializers.ModelSerializer):
@@ -44,7 +45,13 @@ class CustomerRegistrationSerializer(serializers.ModelSerializer):
 
 
 class CustomerSerializer(serializers.ModelSerializer):
+    orders = serializers.SerializerMethodField()
+
     class Meta:
         model = Customer
-        fields = ('id', 'email', 'first_name', 'last_name', 'newsletter', 'is_active', 'date_joined')
-        read_only_fields = ('id', 'date_joined')
+        fields = ('id', 'email', 'first_name', 'last_name', 'newsletter', 'is_active', 'date_joined', 'orders')
+        read_only_fields = ('id', 'date_joined', 'orders')
+
+    def get_orders(self, obj):
+        orders = obj.orders.all().order_by('-created_at')
+        return OrderSerializer(orders, many=True).data
