@@ -390,14 +390,3 @@ class ExecutePayPalPaymentView(APIView):
                 {"detail": f"Payment execution failed: {result.get('error')}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-class UserOrdersView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        orders = Order.objects.prefetch_related('items').filter(
-            user=request.user
-        ).order_by('-created_at')
-        
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)

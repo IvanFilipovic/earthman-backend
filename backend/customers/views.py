@@ -40,7 +40,10 @@ class CustomerMeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        serializer = CustomerSerializer(request.user)
+        customer = Customer.objects.prefetch_related(
+            'orders__items__product_variant__product'
+        ).get(pk=request.user.pk)
+        serializer = CustomerSerializer(customer)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request):
