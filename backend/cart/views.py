@@ -34,8 +34,19 @@ class UpdateCartItemView(APIView):
         if not product_variant_slug:
             return Response({"detail": "Missing product_variant_slug."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not quantity or int(quantity) < 1:
-            return Response({"detail": "Quantity must be 1 or more."}, status=status.HTTP_400_BAD_REQUEST)
+        # Validate quantity with upper and lower limits
+        try:
+            quantity = int(quantity)
+            if quantity < 1 or quantity > 999:
+                return Response(
+                    {"detail": "Quantity must be between 1 and 999."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except (ValueError, TypeError):
+            return Response(
+                {"detail": "Invalid quantity format."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             variant = ProductVariant.objects.get(slug=product_variant_slug)

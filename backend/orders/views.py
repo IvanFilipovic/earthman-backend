@@ -1,6 +1,7 @@
 # orders/views.py
 
 import stripe
+from decimal import Decimal
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -120,8 +121,24 @@ class CreateOrderView(APIView):
         if customer_data["payment_method"] == "card":
             # Stripe Payment
             try:
+                # Recalculate total from database to prevent price manipulation
+                calculated_total = Decimal('0.00')
+                for item in order.items.select_related('product_variant__product').all():
+                    product = item.product_variant.product
+                    unit_price = product.discount_price if product.discount else product.price
+                    calculated_total += unit_price * item.quantity
+                calculated_total += order.shipping_cost
+
+                # Verify against order total
+                if abs(calculated_total - order.total_price) > Decimal('0.01'):
+                    order.delete()
+                    return Response(
+                        {"detail": "Price mismatch detected. Please try again."},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
                 payment_intent = stripe.PaymentIntent.create(
-                    amount=int(order.total_price * 100),  # Convert to cents
+                    amount=int(calculated_total * 100),  # Convert to cents
                     currency='eur',
                     metadata={
                         'order_reference': order.order_reference,

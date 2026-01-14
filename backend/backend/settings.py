@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'orders',
     'customers',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'import_export'
 ]
 
